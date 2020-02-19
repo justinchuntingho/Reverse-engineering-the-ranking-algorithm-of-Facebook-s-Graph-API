@@ -11,10 +11,16 @@ golden$date <- as.Date(golden$date)
 api.sample <- read.csv("data/api_sample.csv", stringsAsFactors = FALSE)
 api.sample$date <- as.Date(api.sample$date)
 
+################################### Loading Packages ################################### 
 library(dplyr)
 library(qwraps2)
 library(stargazer)
+library(lmtest)
+library(caret)
+library(pscl)
+library(ROCR)
 
+################################### Data Preparation ################################### 
 
 # Identifying which posts are chosen by the API
 chosen <- golden$post_id %in% api.sample$post_id
@@ -59,6 +65,7 @@ raw_reaction$log.haha <- log(raw_reaction$rea_HAHA+1, 2)
 raw_reaction$log.sad <- log(raw_reaction$rea_SAD+1, 2)
 raw_reaction$log.angry <- log(raw_reaction$rea_ANGRY+1, 2)
 
+################################### Estimating the Models ################################### 
 model0 <- glm(chosen ~ 1, data = raw_reaction, family = "binomial") # null model
 model_baseline <- glm(chosen ~ type + log.comments + 
                         log.shares +
@@ -72,12 +79,11 @@ model_full <- glm(chosen ~ type + log.comments + log.comlikes +
 
 stargazer(model_baseline, model_full)
 
+################################### Evaluating the Models ################################### 
 # Likelihood Ratio Test
-library(lmtest)
 lrtest(model0, model_baseline, model_full)
 
 # Pseudo R^2
-library(pscl)
 pR2(model_full)
 pR2(model_baseline)
 
@@ -87,7 +93,6 @@ fitted.results <- ifelse(fitted.results > 0.5,1,0)
 misClasificError <- mean(fitted.results != raw_reaction$chosen)
 print(paste('Accuracy',1-misClasificError))
 
-library(caret)
 conmat <- confusionMatrix(data=as.factor(fitted.results), as.factor(raw_reaction$chosen))
 conmat
 
@@ -95,7 +100,6 @@ ConfMat <- as.data.frame.matrix(conmat$table)
 stargazer(ConfMat, head = TRUE, title = "Table", summary = FALSE)
 
 # ROC Curve
-library(ROCR)
 p <- predict(model_full, type="response")
 pr <- prediction(p, raw_reaction$chosen)
 prf <- performance(pr, measure = "tpr", x.measure = "fpr")
