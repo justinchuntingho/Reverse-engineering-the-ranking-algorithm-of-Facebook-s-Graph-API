@@ -8,7 +8,7 @@ List of files:
 - `logisitic.R` produces the logisitic regression models.
 - `sentanalysis.R` produces the sentiment analysis.
 
-All scripts are tested on 19 February with the following session:
+All scripts are tested on 19 February 2020 with the following session:
 ```
 R version 3.6.0 (2019-04-26)
 Platform: x86_64-apple-darwin15.6.0 (64-bit)
